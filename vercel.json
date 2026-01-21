@@ -1,7 +1,4 @@
 {
-  "git": {
-    "deploymentEnabled": true
-  },
-  "buildCommand": "git lfs install && git lfs pull && npm run build",
+  "buildCommand": "node scripts/download-models.mjs && npm run build",
   "framework": "vite"
 }
