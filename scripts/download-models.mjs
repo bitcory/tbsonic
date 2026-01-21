@@ -59,7 +59,13 @@ function downloadFile(url, dest) {
 
       protocol.get(url, (response) => {
         if (response.statusCode === 301 || response.statusCode === 302 || response.statusCode === 307) {
-          follow(response.headers.location, redirectCount + 1);
+          let redirectUrl = response.headers.location;
+          // Handle relative URLs
+          if (redirectUrl.startsWith('/')) {
+            const urlObj = new URL(url);
+            redirectUrl = `${urlObj.protocol}//${urlObj.host}${redirectUrl}`;
+          }
+          follow(redirectUrl, redirectCount + 1);
           return;
         }
 
