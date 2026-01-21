@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import https from 'https';
+import http from 'http';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -54,7 +55,7 @@ function downloadFile(url, dest) {
         return;
       }
 
-      const protocol = url.startsWith('https') ? https : require('http');
+      const protocol = url.startsWith('https') ? https : http;
 
       protocol.get(url, (response) => {
         if (response.statusCode === 301 || response.statusCode === 302 || response.statusCode === 307) {
