@@ -1,4 +1,15 @@
 declare module 'onnxruntime-web' {
+  export const env: {
+    wasm: {
+      wasmPaths: string;
+      numThreads?: number;
+      simd?: boolean;
+    };
+    webgpu?: {
+      powerPreference?: 'low-power' | 'high-performance';
+    };
+  };
+
   export interface Tensor {
     data: Float32Array | BigInt64Array | Int32Array | Uint8Array;
     dims: readonly number[];
