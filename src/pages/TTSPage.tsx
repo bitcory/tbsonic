@@ -19,10 +19,9 @@ import {
 import * as ort from 'onnxruntime-web';
 ort.env.wasm.wasmPaths = '/';
 
-// HuggingFace CDN URLs (Git LFS 문제 해결용)
-const HF_BASE_URL = 'https://huggingface.co/Supertone/supertonic-2/resolve/main';
-const ONNX_BASE_URL = `${HF_BASE_URL}/onnx`;
-const VOICE_STYLE_BASE_URL = `${HF_BASE_URL}/voice_styles`;
+// 로컬 경로 (Vercel Git LFS로 서빙)
+const ONNX_BASE_URL = '/assets/onnx';
+const VOICE_STYLE_BASE_URL = '/assets/voice_styles';
 
 interface TTSInstance {
   textToSpeech: {
