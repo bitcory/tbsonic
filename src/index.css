@@ -1,0 +1,144 @@
+@import "tailwindcss";
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background-color: #FFFEF0;
+}
+
+/* 커스텀 스피너 애니메이션 */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.animate-spin {
+  animation: spin 1s linear infinite;
+}
+
+/* 펄스 애니메이션 */
+@keyframes pulse-scale {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.05);
+  }
+}
+
+.animate-pulse-scale {
+  animation: pulse-scale 2s ease-in-out infinite;
+}
+
+/* 버튼 로딩 상태 애니메이션 */
+@keyframes button-loading {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+.btn-loading {
+  background: linear-gradient(90deg, #4ECDC4, #FFE66D, #FF6B6B, #4ECDC4);
+  background-size: 300% 100%;
+  animation: button-loading 2s ease infinite;
+}
+
+/* 슬라이더 스타일 */
+input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-runnable-track {
+  background: #e5e7eb;
+  height: 12px;
+  border-radius: 9999px;
+  border: 2px solid black;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  background: #FF6B6B;
+  border: 3px solid black;
+  border-radius: 50%;
+  margin-top: -8px;
+  box-shadow: 2px 2px 0px 0px rgba(0,0,0,1);
+  transition: all 0.15s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  background: #ff5252;
+  transform: scale(1.1);
+}
+
+input[type="range"]::-webkit-slider-thumb:active {
+  box-shadow: 1px 1px 0px 0px rgba(0,0,0,1);
+  transform: scale(0.95);
+}
+
+input[type="range"]::-moz-range-track {
+  background: #e5e7eb;
+  height: 12px;
+  border-radius: 9999px;
+  border: 2px solid black;
+}
+
+input[type="range"]::-moz-range-thumb {
+  width: 20px;
+  height: 20px;
+  background: #FF6B6B;
+  border: 3px solid black;
+  border-radius: 50%;
+  box-shadow: 2px 2px 0px 0px rgba(0,0,0,1);
+}
+
+/* 오디오 플레이어 스타일 */
+audio {
+  border-radius: 12px;
+  border: 2px solid black;
+}
+
+audio::-webkit-media-controls-panel {
+  background-color: #FFFEF0;
+}
+
+/* 스크롤바 스타일 */
+::-webkit-scrollbar {
+  width: 12px;
+}
+
+::-webkit-scrollbar-track {
+  background: #FFFEF0;
+  border-left: 2px solid black;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #4ECDC4;
+  border: 2px solid black;
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3dbdb5;
+}
+
+/* 선택 스타일 */
+::selection {
+  background: #FFE66D;
+  color: black;
+}
