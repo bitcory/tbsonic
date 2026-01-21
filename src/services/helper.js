@@ -429,10 +429,16 @@ export async function loadTextProcessor(onnxDir) {
 }
 
 /**
- * Load ONNX model
+ * Load ONNX model (with fetch for CORS/redirect support)
  */
 export async function loadOnnx(onnxPath, options) {
-    const session = await ort.InferenceSession.create(onnxPath, options);
+    // Fetch the model as ArrayBuffer to handle CORS and redirects
+    const response = await fetch(onnxPath);
+    if (!response.ok) {
+        throw new Error(`Failed to fetch model: ${response.status} ${response.statusText}`);
+    }
+    const arrayBuffer = await response.arrayBuffer();
+    const session = await ort.InferenceSession.create(arrayBuffer, options);
     return session;
 }
 
