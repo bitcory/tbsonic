@@ -19,6 +19,11 @@ import {
 import * as ort from 'onnxruntime-web';
 ort.env.wasm.wasmPaths = '/';
 
+// HuggingFace CDN URLs (Git LFS 문제 해결용)
+const HF_BASE_URL = 'https://huggingface.co/Supertone/supertonic-2/resolve/main';
+const ONNX_BASE_URL = `${HF_BASE_URL}/onnx`;
+const VOICE_STYLE_BASE_URL = `${HF_BASE_URL}/voice_styles`;
+
 interface TTSInstance {
   textToSpeech: {
     call: (text: string, lang: string, style: Style, totalStep: number, speed: number, silenceDuration: number, progressCallback: ((step: number, total: number) => void) | null) => Promise<{ wav: number[], duration: number[] }>;
@@ -65,7 +70,7 @@ export default function TTSPage() {
         try {
           setLoadingMessage('WebGPU로 모델 로딩 시도 중...');
           const result = await loadTextToSpeech(
-            '/assets/onnx',
+            ONNX_BASE_URL,
             { executionProviders: ['webgpu'], graphOptimizationLevel: 'all' },
             (name: string, current: number, total: number) => {
               setLoadingMessage(`${name} 로딩 중...`);
@@ -80,7 +85,7 @@ export default function TTSPage() {
           setLoadingProgress(0);
 
           const result = await loadTextToSpeech(
-            '/assets/onnx',
+            ONNX_BASE_URL,
             { executionProviders: ['wasm'], graphOptimizationLevel: 'all' },
             (name: string, current: number, total: number) => {
               setLoadingMessage(`${name} 로딩 중...`);
@@ -94,7 +99,7 @@ export default function TTSPage() {
         ttsRef.current = { textToSpeech, cfgs };
 
         setLoadingMessage('음성 스타일 로딩 중...');
-        const style = await loadVoiceStyle([`/assets/voice_styles/${DEFAULT_SETTINGS.voiceStyle}.json`]);
+        const style = await loadVoiceStyle([`${VOICE_STYLE_BASE_URL}/${DEFAULT_SETTINGS.voiceStyle}.json`]);
         styleRef.current = style;
 
         setIsLoading(false);
@@ -111,7 +116,7 @@ export default function TTSPage() {
   const handleVoiceChange = useCallback(async (voiceId: string) => {
     try {
       setSelectedVoiceId(voiceId);
-      const style = await loadVoiceStyle([`/assets/voice_styles/${voiceId}.json`]);
+      const style = await loadVoiceStyle([`${VOICE_STYLE_BASE_URL}/${voiceId}.json`]);
       styleRef.current = style;
     } catch (err) {
       setError(`음성 스타일 로딩 실패: ${err instanceof Error ? err.message : '알 수 없는 오류'}`);
