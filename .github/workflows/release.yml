@@ -1,0 +1,102 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+jobs:
+  release:
+    permissions:
+      contents: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - platform: 'macos-latest'
+            args: '--target aarch64-apple-darwin'
+            name: 'macOS-ARM64'
+          - platform: 'macos-latest'
+            args: '--target x86_64-apple-darwin'
+            name: 'macOS-Intel'
+          - platform: 'ubuntu-22.04'
+            args: ''
+            name: 'Linux'
+          - platform: 'windows-latest'
+            args: ''
+            name: 'Windows'
+
+    runs-on: ${{ matrix.platform }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download models from HuggingFace
+        shell: bash
+        run: |
+          mkdir -p public/assets/onnx
+          mkdir -p public/assets/voice_styles
+
+          echo "Downloading ONNX models..."
+          curl -L -o public/assets/onnx/duration_predictor.onnx "https://huggingface.co/Supertone/supertonic-2/resolve/main/onnx/duration_predictor.onnx"
+          curl -L -o public/assets/onnx/text_encoder.onnx "https://huggingface.co/Supertone/supertonic-2/resolve/main/onnx/text_encoder.onnx"
+          curl -L -o public/assets/onnx/vector_estimator.onnx "https://huggingface.co/Supertone/supertonic-2/resolve/main/onnx/vector_estimator.onnx"
+          curl -L -o public/assets/onnx/vocoder.onnx "https://huggingface.co/Supertone/supertonic-2/resolve/main/onnx/vocoder.onnx"
+          curl -L -o public/assets/onnx/tts.json "https://huggingface.co/Supertone/supertonic-2/resolve/main/onnx/tts.json"
+          curl -L -o public/assets/onnx/unicode_indexer.json "https://huggingface.co/Supertone/supertonic-2/resolve/main/onnx/unicode_indexer.json"
+
+          echo "Downloading voice styles..."
+          for voice in M1 M2 M3 M4 M5 F1 F2 F3 F4 F5; do
+            curl -L -o "public/assets/voice_styles/${voice}.json" "https://huggingface.co/Supertone/supertonic-2/resolve/main/voice_styles/${voice}.json"
+          done
+
+          echo "Download complete!"
+          ls -la public/assets/onnx/
+          ls -la public/assets/voice_styles/
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+          cache: 'npm'
+
+      - name: Install Rust stable
+        uses: dtolnay/rust-action@stable
+        with:
+          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+
+      - name: Install dependencies (Ubuntu)
+        if: matrix.platform == 'ubuntu-22.04'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+
+      - name: Install frontend dependencies
+        run: npm ci
+
+      - name: Build Tauri app
+        uses: tauri-apps/tauri-action@v0
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tagName: v__VERSION__
+          releaseName: 'TBSonic v__VERSION__'
+          releaseBody: |
+            ## TBSonic - AI TTS Application
+
+            브라우저 기반 AI 음성 합성 데스크탑 앱
+
+            ### 다운로드
+            - **Windows**: `.msi` 또는 `.exe` 파일
+            - **macOS (Apple Silicon)**: `_aarch64.dmg` 파일
+            - **macOS (Intel)**: `_x64.dmg` 파일
+            - **Linux**: `.AppImage` 또는 `.deb` 파일
+
+            ### 기능
+            - 5개 언어 지원 (한국어, 영어, 스페인어, 포르투갈어, 프랑스어)
+            - 10가지 음성 스타일
+            - 속도 및 품질 조절
+            - WAV 다운로드
+          releaseDraft: true
+          prerelease: false
+          args: ${{ matrix.args }}
