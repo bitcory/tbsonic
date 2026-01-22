@@ -2,6 +2,8 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { LANGUAGES, VOICE_STYLES, DEFAULT_SETTINGS, AUDIO_CONFIG } from './constants';
 // @ts-ignore
 import { loadTextToSpeech, loadVoiceStyle, writeWavFile, Style } from './services/helper.js';
+// Tauri 환경 체크
+const isTauri = typeof window !== 'undefined' && '__TAURI__' in window;
 import {
   Play,
   Pause,
@@ -55,6 +57,7 @@ function App() {
 
   // 오디오 결과
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [audioDuration, setAudioDuration] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -175,6 +178,7 @@ function App() {
       const blob = new Blob([wavBuffer], { type: 'audio/wav' });
       const url = URL.createObjectURL(blob);
 
+      setAudioBlob(blob);
       setAudioUrl(url);
       setAudioDuration(result.duration[0]);
       setIsGenerating(false);
@@ -197,18 +201,45 @@ function App() {
   }, [isPlaying]);
 
   // 다운로드
-  const handleDownload = useCallback(() => {
-    if (!audioUrl) return;
+  const handleDownload = useCallback(async () => {
+    if (!audioBlob && !audioUrl) return;
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
     const voiceName = VOICE_STYLES.find(v => v.id === selectedVoiceId)?.name || selectedVoiceId;
-    const a = document.createElement('a');
-    a.href = audioUrl;
-    a.download = `tts_${voiceName}_${timestamp}.wav`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-  }, [audioUrl, selectedVoiceId]);
+    const defaultFileName = `tts_${voiceName}_${timestamp}.wav`;
+
+    if (isTauri && audioBlob) {
+      try {
+        // Tauri 환경: 파일 저장 다이얼로그 사용
+        const { save } = await import('@tauri-apps/plugin-dialog');
+        const { writeFile } = await import('@tauri-apps/plugin-fs');
+        const { revealItemInDir } = await import('@tauri-apps/plugin-opener');
+
+        const filePath = await save({
+          defaultPath: defaultFileName,
+          filters: [{ name: 'WAV Audio', extensions: ['wav'] }],
+        });
+
+        if (filePath) {
+          const arrayBuffer = await audioBlob.arrayBuffer();
+          const uint8Array = new Uint8Array(arrayBuffer);
+          await writeFile(filePath, uint8Array);
+          await revealItemInDir(filePath);
+        }
+      } catch (err) {
+        console.error('Download error:', err);
+        setError(`다운로드 실패: ${err instanceof Error ? err.message : '알 수 없는 오류'}`);
+      }
+    } else if (audioUrl) {
+      // 브라우저 환경: 기본 다운로드
+      const a = document.createElement('a');
+      a.href = audioUrl;
+      a.download = defaultFileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+    }
+  }, [audioBlob, audioUrl, selectedVoiceId]);
 
   // Ctrl+Enter로 생성
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
