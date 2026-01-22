@@ -20,9 +20,6 @@ jobs:
           - platform: 'macos-latest'
             args: '--target x86_64-apple-darwin'
             name: 'macOS-Intel'
-          - platform: 'ubuntu-22.04'
-            args: ''
-            name: 'Linux'
           - platform: 'windows-latest'
             args: ''
             name: 'Windows'
@@ -90,7 +87,6 @@ jobs:
             - **Windows**: `.msi` 또는 `.exe` 파일
             - **macOS (Apple Silicon)**: `_aarch64.dmg` 파일
             - **macOS (Intel)**: `_x64.dmg` 파일
-            - **Linux**: `.AppImage` 또는 `.deb` 파일
 
             ### 기능
             - 5개 언어 지원 (한국어, 영어, 스페인어, 포르투갈어, 프랑스어)
