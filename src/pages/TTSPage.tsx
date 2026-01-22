@@ -51,6 +51,7 @@ export default function TTSPage() {
   const [generateStep, setGenerateStep] = useState(0);
 
   const [audioUrl, setAudioUrl] = useState<string | null>(null);
+  const [audioBlob, setAudioBlob] = useState<Blob | null>(null);
   const [audioDuration, setAudioDuration] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const audioRef = useRef<HTMLAudioElement>(null);
@@ -135,6 +136,7 @@ export default function TTSPage() {
       if (audioUrl) {
         URL.revokeObjectURL(audioUrl);
         setAudioUrl(null);
+        setAudioBlob(null);
       }
 
       const { textToSpeech } = ttsRef.current;
@@ -155,6 +157,7 @@ export default function TTSPage() {
       const blob = new Blob([wavBuffer], { type: 'audio/wav' });
       const url = URL.createObjectURL(blob);
 
+      setAudioBlob(blob);
       setAudioUrl(url);
       setAudioDuration(result.duration[0]);
       setIsGenerating(false);
@@ -176,17 +179,19 @@ export default function TTSPage() {
   }, [isPlaying]);
 
   const handleDownload = useCallback(() => {
-    if (!audioUrl) return;
+    if (!audioBlob) return;
 
     const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
     const voiceName = VOICE_STYLES.find(v => v.id === selectedVoiceId)?.name || selectedVoiceId;
+    const url = URL.createObjectURL(audioBlob);
     const a = document.createElement('a');
-    a.href = audioUrl;
+    a.href = url;
     a.download = `tts_${voiceName}_${timestamp}.wav`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
-  }, [audioUrl, selectedVoiceId]);
+    URL.revokeObjectURL(url);
+  }, [audioBlob, selectedVoiceId]);
 
   const handleKeyDown = useCallback((e: React.KeyboardEvent) => {
     if (e.ctrlKey && e.key === 'Enter' && !isGenerating && text.trim()) {
